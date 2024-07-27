@@ -3,5 +3,44 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"launch": {
+		"configurations": [
+			{
+				"type": "aws-sam",
+				"request": "direct-invoke",
+				"name": "minecraft-discord-bot:HelloWorldFunction (python3.12)",
+				"invokeTarget": {
+					"target": "template",
+					"templatePath": "${workspaceFolder}/minecraft-discord-bot/template.yaml",
+					"logicalId": "HelloWorldFunction"
+				},
+				"lambda": {
+					"payload": {},
+					"environmentVariables": {},
+					"runtime": "python3.12"
+				}
+			},
+			{
+				"type": "aws-sam",
+				"request": "direct-invoke",
+				"name": "API minecraft-discord-bot:HelloWorldFunction (python3.12)",
+				"invokeTarget": {
+					"target": "api",
+					"templatePath": "${workspaceFolder}/minecraft-discord-bot/template.yaml",
+					"logicalId": "HelloWorldFunction"
+				},
+				"api": {
+					"path": "/hello",
+					"httpMethod": "get",
+					"payload": {
+						"json": {}
+					}
+				},
+				"lambda": {
+					"runtime": "python3.12"
+				}
+			}
+		]
+	}
 }
