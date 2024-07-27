@@ -7,10 +7,13 @@
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers/features/aws-cli:1": {},
-		"ghcr.io/customink/codespaces-features/sam-cli": {}
-	}
+		"ghcr.io/customink/codespaces-features/sam-cli": {},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"forwardPorts": [
+		5858
+	]
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "pip3 install --user -r requirements.txt",
 	// Configure tool-specific properties.
