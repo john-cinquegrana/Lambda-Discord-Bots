@@ -4,6 +4,11 @@
 			"path": "."
 		}
 	],
+	"settings": {
+		"python.autoComplete.extraPaths": [
+			"${workspaceFolder}/.aws-sam/deps"
+		],
+	},
 	"launch": {
 		"configurations": [
 			{
