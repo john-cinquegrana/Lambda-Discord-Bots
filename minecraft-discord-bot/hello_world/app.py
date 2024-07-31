@@ -33,8 +33,8 @@ def lambda_handler(event, context):
 
     try:
 
-        # Print out the message id we have recieved
-        print("Message ID: " + event['headers']['x-discord-interaction-id'])
+        # Print out the AWS message id we have recieved
+        print("Recieved new Message: " + event['requestContext']['requestId'])
 
         body = json.loads(event['body'])
             
@@ -106,14 +106,14 @@ def command_handler(body):
 
 def create_message_body(message):
     return {
-      'statusCode': 200,
-      'headers' : {'Content-Type': 'application/json'},
-      'body': json.dumps({
-        'type': 4,
-        'data': {
-          'content': message,
-        }
-      })
+        'statusCode': 200,
+        'headers' : {'Content-Type': 'application/json'},
+        'body': json.dumps({
+            'type': 4,
+            'data': {
+            'content': message,
+            }
+        })
     }
 
 # Commands for interacting with AWS
