@@ -154,7 +154,11 @@ def get_bot_key():
         }
     '''
 
-    return response['Parameter']['Value']
+    # Pull the value out of the response
+    value = response['Parameter']['Value']
+    print(f"Bot Key: {value}")
+
+    return value
 
 def get_mc_instance_id():
     '''Grabs the instance ID of the EC2 instance running the Minecraft server.
