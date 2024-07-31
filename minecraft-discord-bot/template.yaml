@@ -28,6 +28,9 @@ Resources:
           Properties:
             Path: /hello
             Method: post
+      Policies:
+        - SSMParameterReadPolicy:
+            ParameterName: discord_alex_bot_token
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
