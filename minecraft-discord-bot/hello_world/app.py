@@ -27,7 +27,7 @@ def start_minecraft_server(event: dict):
     # Return a proper response with the string encoded
     return create_message_body(response_string)
 
-COMMANDS: Dict[str, Callable[[dict], str]] = {
+COMMAND_MAP: Dict[str, Callable[[dict], str]] = {
     'startmcserver': start_minecraft_server,
     'ping': ping_respond
 }
@@ -59,60 +59,59 @@ def lambda_handler(event, context):
         # Print out the AWS message id we have recieved
         print("Recieved new Message: " + event['requestContext']['requestId'])
 
-        body = json.loads(event['body'])
-            
-        signature = event['headers']['x-signature-ed25519']
-        timestamp = event['headers']['x-signature-timestamp']
-
-        # Bring down the key for the Discord Bot
-        bot_token = get_bot_key()
-
-        # validate the interaction
-
-        verify_key = VerifyKey(bytes.fromhex(bot_token))
-
-        message = timestamp + event['body']
-        
-        try:
-            verify_key.verify(message.encode(), signature=bytes.fromhex(signature))
-        except BadSignatureError:
+        # Verify that this message was actually sent by Discord
+        if verify_headers(event):
+            # handle the interaction
+            return discord_handler(event)
+        # IF verification failed, respond with an error
+        else:
             print('invalid request signature, 401 returned')
             return {
                 'statusCode': 401,
                 'body': json.dumps('invalid request signature')
             }
         
-        # handle the interaction
-
-        t = body['type']
-
-        if t == 1:
-            print('responded with discord verification')
-            return {
-                'statusCode': 200,
-                'body': json.dumps({
-                    'type': 1
-                })
-            }
-        elif t == 2:
-            return command_handler(event)
-        else:
-            return {
-                'statusCode': 400,
-                'body': json.dumps('unhandled request type')
-            }
+        
+    
     except:
         raise
 
-def command_handler(event: dict) -> dict:
+def discord_handler(event: dict) -> dict:
+    # Load in the body as json
+    body = json.loads(event['body'])
+
+    t = body['type']
+
+    # A t of 1 represent a ping from Discord to verify the bot
+    if t == 1:
+        print('responded with discord verification')
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'type': 1
+            })
+        }
+    # A t of 2 represents a command from Discord
+    elif t == 2:
+        return command_handler(body)
+    else:
+        return {
+            'statusCode': 400,
+            'body': json.dumps('unhandled request type')
+        }
+
+def command_handler(body: dict) -> dict:
+    # Print out the body of the request
+    print(f"Body: {body}")
+
     # Grab the actual command text
-    command = event['body']['data']['name']
+    command = body['data']['name']
 
     print(f"Command: {command}")
 
     # If we have a handler for this command, run it
-    if command in COMMANDS:
-        return COMMANDS[command](event)
+    if command in COMMAND_MAP:
+        return COMMAND_MAP[command](body)
     
     # If we don't have a handler, return a 400
     return {
@@ -121,6 +120,31 @@ def command_handler(event: dict) -> dict:
         }
 
 # Commands for interacting with Discord
+
+def verify_headers(event: dict) -> bool:
+    '''Given the AWS event, verifies the headers are correct for a Discord
+    interaction. Rreturns true if this verification passes, false otherwise.'''
+            
+    signature = event['headers']['x-signature-ed25519']
+    timestamp = event['headers']['x-signature-timestamp']
+
+    # Bring down the key for the Discord Bot
+    bot_token = get_bot_key()
+
+    # Create the cryptographic key used for verification
+    verify_key = VerifyKey(bytes.fromhex(bot_token))
+
+    message = timestamp + event['body']
+    
+    # Verify that the message is signed according to our bot key
+    try:
+        verify_key.verify(message.encode(), signature=bytes.fromhex(signature))
+    except BadSignatureError:
+        print('invalid request signature, 401 returned')
+        return False
+    
+    # If we have gotten here, validation has succeeded
+    return True
 
 def create_message_body(message):
     return {
