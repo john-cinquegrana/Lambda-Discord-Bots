@@ -9,14 +9,17 @@ from nacl.exceptions import BadSignatureError
 # Import the AWS SDK boto3
 import boto3
 
-COMMANDS = [
-    'startmcserver',
-    'ping'
-]
+# Commands for individual discord commands
+def ping_respond(body: dict):
+    pass
+
+def start_minecraft_server(body: dict):
+    start_minecraft_server()
+    pass
 
 COMMANDS: Dict[str, Callable[[dict], str]] = {
     'startmcserver': start_minecraft_server,
-    'ping': ping_function
+    'ping': ping_respond
 }
 
 def ping_function():
@@ -114,10 +117,6 @@ def command_handler(event: dict) -> dict:
             'statusCode': 400,
             'body': json.dumps('unhandled command')
         }
-
-# Commands for individual discord commands
-def ping_respond(body: dict):
-
 
 # Commands for interacting with Discord
 
