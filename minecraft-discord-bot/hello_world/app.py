@@ -10,13 +10,13 @@ from nacl.exceptions import BadSignatureError
 import boto3
 
 # Commands for individual discord commands
-def ping_respond(event: dict):
+def ping_respond(body: dict):
     # Discord command body defined in https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
     # http_body = event['body']
 
     return create_message_body("Pong!")
 
-def start_minecraft_server(event: dict):
+def start_minecraft_server(body: dict):
     # Discord command body defined in https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
     # http_body = event['body']
 
@@ -102,7 +102,7 @@ def discord_handler(event: dict) -> dict:
 
 def command_handler(body: dict) -> dict:
     # Print out the body of the request
-    print(f"Body: {body}")
+    # print(f"Body: {body}")
 
     # Grab the actual command text
     command = body['data']['name']
