@@ -109,6 +109,10 @@ fabric.properties
 .idea/sonarlint
 
 ### Python ###
+
+# Custom packaging directory
+.py-deps
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

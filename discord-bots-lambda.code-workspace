@@ -6,7 +6,8 @@
 	],
 	"settings": {
 		"python.autoComplete.extraPaths": [
-			"${workspaceFolder}/.aws-sam/deps"
+			"${workspaceFolder}/.aws-sam/deps",
+			"${workspaceFolder}/.py-deps"
 		],
 	},
 	"launch": {
