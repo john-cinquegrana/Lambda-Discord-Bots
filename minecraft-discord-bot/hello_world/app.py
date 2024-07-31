@@ -10,21 +10,27 @@ from nacl.exceptions import BadSignatureError
 import boto3
 
 # Commands for individual discord commands
-def ping_respond(body: dict):
-    pass
+def ping_respond(event: dict):
+    # Discord command body defined in https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
+    # http_body = event['body']
 
-def start_minecraft_server(body: dict):
-    start_minecraft_server()
-    pass
+    return create_message_body("Pong!")
+
+def start_minecraft_server(event: dict):
+    # Discord command body defined in https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-structure
+    # http_body = event['body']
+
+    start_response = start_minecraft_server()
+    # Create a string from response from the previous state to the current state
+    response_string = f"Minecraft Server is now {start_response['StartingInstances'][0]['CurrentState']['Name']}"
+    print(response_string)
+    # Return a proper response with the string encoded
+    return create_message_body(response_string)
 
 COMMANDS: Dict[str, Callable[[dict], str]] = {
     'startmcserver': start_minecraft_server,
     'ping': ping_respond
 }
-
-def ping_function():
-    print("Pong!")
-    return create_message_body("Pong!")
 
 def lambda_handler(event, context):
     """Sample pure Lambda function
@@ -99,21 +105,17 @@ def lambda_handler(event, context):
         raise
 
 def command_handler(event: dict) -> dict:
-    command = body['data']['name']
+    # Grab the actual command text
+    command = event['body']['data']['name']
+
     print(f"Command: {command}")
 
-    if command == 'startmcserver':
-        response = start_minecraft_server()
-        # Create a string from response from the previous state to the current state
-        response_string = f"Server is now {response['StartingInstances'][0]['CurrentState']['Name']}"
-        # Return a proper response with the string encoded
-        return create_message_body(response_string)
-    elif command == "ping":
-        print("Pong!")
-        return create_message_body("Pong!")
-    else:
-        print(f"Unhandled command: {command}")
-        return {
+    # If we have a handler for this command, run it
+    if command in COMMANDS:
+        return COMMANDS[command](event)
+    
+    # If we don't have a handler, return a 400
+    return {
             'statusCode': 400,
             'body': json.dumps('unhandled command')
         }
@@ -174,7 +176,6 @@ def get_bot_key():
 
     # Pull the value out of the response
     value = response['Parameter']['Value']
-    print(f"Bot Key: {value}")
 
     return value
 
