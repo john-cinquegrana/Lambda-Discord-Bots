@@ -5,9 +5,9 @@
 		}
 	],
 	"settings": {
-		"python.autoComplete.extraPaths": [
-			"${workspaceFolder}/.aws-sam/deps",
-			"${workspaceFolder}/.py-deps"
+		"python.analysis.extraPaths": [
+			"minecraft-discord-bot/.aws-sam/deps",
+			"minecraft-discord-bot/.py-deps"
 		],
 	},
 	"launch": {
