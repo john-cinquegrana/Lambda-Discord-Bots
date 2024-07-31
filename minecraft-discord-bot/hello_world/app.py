@@ -33,6 +33,9 @@ def lambda_handler(event, context):
 
     try:
 
+        # Print out the message id we have recieved
+        print("Message ID: " + event['headers']['x-discord-interaction-id'])
+
         body = json.loads(event['body'])
             
         signature = event['headers']['x-signature-ed25519']
@@ -50,6 +53,7 @@ def lambda_handler(event, context):
         try:
             verify_key.verify(message.encode(), signature=bytes.fromhex(signature))
         except BadSignatureError:
+            print('invalid request signature, 401 returned')
             return {
                 'statusCode': 401,
                 'body': json.dumps('invalid request signature')
@@ -60,6 +64,7 @@ def lambda_handler(event, context):
         t = body['type']
 
         if t == 1:
+            print('responded with discord verification')
             return {
                 'statusCode': 200,
                 'body': json.dumps({
@@ -77,26 +82,52 @@ def lambda_handler(event, context):
         raise
 
 def command_handler(body):
-  command = body['data']['name']
+    command = body['data']['name']
+    print(f"Command: {command}")
 
-  if command == 'hello':
+    if command == 'startMinecraftServer':
+        response = start_minecraft_server()
+        # Create a string from response from the previous state to the current state
+        response_string = f"Server is now {response['StartingInstances'][0]['CurrentState']['Name']}"
+        # Return a proper response with the string encoded
+        return create_message_body(response_string)
+    elif command == "ping":
+        print("Pong!")
+        return create_message_body("Pong!")
+    else:
+        print(f"Unhandled command: {command}")
+        return {
+            'statusCode': 400,
+            'body': json.dumps('unhandled command')
+        }
+
+
+# Commands for interacting with Discord
+
+def create_message_body(message):
     return {
       'statusCode': 200,
       'headers' : {'Content-Type': 'application/json'},
       'body': json.dumps({
         'type': 4,
         'data': {
-          'content': 'Hello, World.',
+          'content': message,
         }
       })
     }
-  else:
-    return {
-      'statusCode': 400,
-      'body': json.dumps('unhandled command')
-    }
-  
+
+# Commands for interacting with AWS
+
+def start_minecraft_server():
+    '''Starts the Minecraft server by sending a command to the EC2 instance running the server.'''
+    instance_id = get_mc_instance_id()
+    ec2 = boto3.client('ec2')
+    print(f"Starting EC2 instance with id: {instance_id}")
+    response = ec2.start_instances(InstanceIds=[instance_id])
+    return response
+
 def get_bot_key():
+
     """This function reaches out to AWS Parameter Store in order to get the bot
     key under the id discord_alex_bot_token without any encryption.
     """
@@ -124,3 +155,9 @@ def get_bot_key():
     '''
 
     return response['Parameter']['Value']
+
+def get_mc_instance_id():
+    '''Grabs the instance ID of the EC2 instance running the Minecraft server.
+    The instance id should be in the environment under the name MC_INSTANCE_ID
+    '''
+    return os.environ['MC_INSTANCE_ID']
