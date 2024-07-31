@@ -1,8 +1,12 @@
 import json
+import os
 
 # Import crypto packages for discord Auth
 from nacl.signing import VerifyKey
 from nacl.exceptions import BadSignatureError
+
+# Import the AWS SDK boto3
+import boto3
 
 
 def lambda_handler(event, context):
@@ -27,23 +31,19 @@ def lambda_handler(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
 
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
-
     try:
+
         body = json.loads(event['body'])
             
         signature = event['headers']['x-signature-ed25519']
         timestamp = event['headers']['x-signature-timestamp']
 
+        # Bring down the key for the Discord Bot
+        bot_token = get_bot_key()
+
         # validate the interaction
 
-        verify_key = VerifyKey(bytes.fromhex(PUBLIC_KEY))
+        verify_key = VerifyKey(bytes.fromhex(bot_token))
 
         message = timestamp + event['body']
         
@@ -63,7 +63,7 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 200,
                 'body': json.dumps({
-                'type': 1
+                    'type': 1
                 })
             }
         elif t == 2:
@@ -95,3 +95,32 @@ def command_handler(body):
       'statusCode': 400,
       'body': json.dumps('unhandled command')
     }
+  
+def get_bot_key():
+    """This function reaches out to AWS Parameter Store in order to get the bot
+    key under the id discord_alex_bot_token without any encryption.
+    """
+    # Create an SSM client
+    ssm = boto3.client('ssm')
+
+    # Create an SSM client
+    # Get the bot key from AWS Parameter Store
+    response = ssm.get_parameter(Name='discord_alex_bot_token')
+
+    ''' Response syntax is as follows defined at https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ssm/client/get_parameter.html
+        {
+            'Parameter': {
+                'Name': 'string',
+                'Type': 'String'|'StringList'|'SecureString',
+                'Value': 'string',
+                'Version': 123,
+                'Selector': 'string',
+                'SourceResult': 'string',
+                'LastModifiedDate': datetime(2015, 1, 1),
+                'ARN': 'string',
+                'DataType': 'string'
+            }
+        }
+    '''
+
+    return response['Parameter']['Value']
