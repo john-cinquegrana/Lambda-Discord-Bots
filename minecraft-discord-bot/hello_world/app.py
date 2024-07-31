@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Callable, Dict
 
 # Import crypto packages for discord Auth
 from nacl.signing import VerifyKey
@@ -8,6 +9,19 @@ from nacl.exceptions import BadSignatureError
 # Import the AWS SDK boto3
 import boto3
 
+COMMANDS = [
+    'startmcserver',
+    'ping'
+]
+
+COMMANDS: Dict[str, Callable[[dict], str]] = {
+    'startmcserver': start_minecraft_server,
+    'ping': ping_function
+}
+
+def ping_function():
+    print("Pong!")
+    return create_message_body("Pong!")
 
 def lambda_handler(event, context):
     """Sample pure Lambda function
@@ -72,7 +86,7 @@ def lambda_handler(event, context):
                 })
             }
         elif t == 2:
-            return command_handler(body)
+            return command_handler(event)
         else:
             return {
                 'statusCode': 400,
@@ -81,7 +95,7 @@ def lambda_handler(event, context):
     except:
         raise
 
-def command_handler(body):
+def command_handler(event: dict) -> dict:
     command = body['data']['name']
     print(f"Command: {command}")
 
@@ -100,6 +114,9 @@ def command_handler(body):
             'statusCode': 400,
             'body': json.dumps('unhandled command')
         }
+
+# Commands for individual discord commands
+def ping_respond(body: dict):
 
 
 # Commands for interacting with Discord
@@ -123,7 +140,9 @@ def start_minecraft_server():
     instance_id = get_mc_instance_id()
     ec2 = boto3.client('ec2')
     print(f"Starting EC2 instance with id: {instance_id}")
+    
     response = ec2.start_instances(InstanceIds=[instance_id])
+    
     return response
 
 def get_bot_key():
