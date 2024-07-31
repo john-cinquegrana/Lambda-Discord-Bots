@@ -85,7 +85,7 @@ def command_handler(body):
     command = body['data']['name']
     print(f"Command: {command}")
 
-    if command == 'startMinecraftServer':
+    if command == 'startmcserver':
         response = start_minecraft_server()
         # Create a string from response from the previous state to the current state
         response_string = f"Server is now {response['StartingInstances'][0]['CurrentState']['Name']}"
