@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: |
   minecraft-discord-bot
@@ -22,7 +22,7 @@ Resources:
       Runtime: python3.12
       MemorySize: 128
       Events:
-        HelloWorld:
+        AlexBotDiscordApi:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /alex
@@ -40,6 +40,7 @@ Resources:
       Target:
         Arn: !GetAtt ServerStopperFunction.Arn
         RoleArn: !GetAtt StopperSchedulerToServerStopperFunctionRole.Arn
+
   ServerStopperFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -49,6 +50,11 @@ Resources:
       MemorySize: 128
       Role: arn:aws:iam::679942607082:role/lambda-execution-role
       Timeout: 30
+      Events:
+        StopperScheduler:
+          Type: Schedule
+          Properties:
+            Schedule: !Ref StopperScheduler
 
   ServerStopperFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -60,7 +66,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           Effect: Allow
           Principal:
@@ -69,7 +75,7 @@ Resources:
       Policies:
         - PolicyName: StartExecutionPolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: lambda:InvokeFunction
@@ -80,7 +86,7 @@ Outputs:
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   AlexBotDiscordApi:
-    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Description: API Gateway endpoint URL for Prod stage for AlexBotDiscord function
     Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
   AlexBotDiscordFunction:
     Description: Hello World Lambda Function ARN
