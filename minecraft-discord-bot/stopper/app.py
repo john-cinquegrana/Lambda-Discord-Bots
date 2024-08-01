@@ -15,9 +15,6 @@ def lambda_handler(event, context):
 
     try:
 
-        # Log the event argument for debugging and for use in local development.
-        print(json.dumps(event))
-
         # Grab the id of the EC2 instance running the Minecraft server
         instance_id = os.environ['MC_INSTANCE_ID']
 
@@ -26,6 +23,7 @@ def lambda_handler(event, context):
         # Check if the EC2 instance is running
         response = ec2.describe_instances(InstanceIds=[instance_id])
         state = response['Reservations'][0]['Instances'][0]['State']['Name']
+        
         # If the EC2 instance is not running, return
         if state != 'running':
             print("Minecraft Server is not currently running")
