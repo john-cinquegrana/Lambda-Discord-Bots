@@ -29,21 +29,6 @@ Resources:
             Method: post
       Role: arn:aws:iam::679942607082:role/lambda-execution-role
       Timeout: 30
-  ServerStopper:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: stopper
-      Handler: app.lambda_handler
-      Runtime: python3.12
-      MemorySize: 128
-      Role: arn:aws:iam::679942607082:role/lambda-execution-role
-      Timeout: 30
-
-  ServerStopperLogGroup:
-    Type: AWS::Logs::LogGroup
-    DeletionPolicy: Retain
-    Properties:
-      LogGroupName: !Sub /aws/lambda/${ServerStopper}
 
   StopperScheduler:
     Type: AWS::Scheduler::Schedule
@@ -53,10 +38,24 @@ Resources:
         Mode: FLEXIBLE
         MaximumWindowInMinutes: 5
       Target:
-        Arn: !GetAtt ServerStopper.Arn
-        RoleArn: !GetAtt StopperSchedulerToServerStopperRole.Arn
+        Arn: !GetAtt ServerStopperFunction.Arn
+        RoleArn: !GetAtt StopperSchedulerToServerStopperFunctionRole.Arn
+  ServerStopperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: stopper
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      MemorySize: 128
+      Role: arn:aws:iam::679942607082:role/lambda-execution-role
+      Timeout: 30
 
-  StopperSchedulerToServerStopperRole:
+  ServerStopperFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ServerStopperFunction}
+  StopperSchedulerToServerStopperFunctionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -78,7 +77,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: lambda:InvokeFunction
-                Resource: !GetAtt ServerStopper.Arn
+                Resource: !GetAtt ServerStopperFunction.Arn
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
