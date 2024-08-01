@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: >
+Description: |
   minecraft-discord-bot
-
-  Sample SAM Template for minecraft-discord-bot
+  Creates a Lambda function suitable to be used as the base for a discord bot.
+  The bot is capable of turning on and off a specific EC2 instance.
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -11,33 +11,32 @@ Globals:
     Timeout: 3
     Environment:
       Variables:
-        MC_INSTANCE_ID: "i-0c357ca3a210f5ef8"
+        MC_INSTANCE_ID: i-0c357ca3a210f5ef8
 
 Resources:
-  HelloWorldFunction:
+  AlexBotDiscordFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello_world/
+      CodeUri: alex_bot/
       Handler: app.lambda_handler
       Runtime: python3.12
-      Architectures:
-        - x86_64
       MemorySize: 128
       Events:
         HelloWorld:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /hello
+            Path: /alex
             Method: post
       Role: arn:aws:iam::679942607082:role/lambda-execution-role
+      Timeout: 30
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
+  AlexBotDiscordApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
+  AlexBotDiscordFunction:
+    Description: Hello World Lambda Function ARN
+    Value: !GetAtt AlexBotDiscordFunction.Arn
