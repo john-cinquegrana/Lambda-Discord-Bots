@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: |
   minecraft-discord-bot
@@ -29,6 +29,56 @@ Resources:
             Method: post
       Role: arn:aws:iam::679942607082:role/lambda-execution-role
       Timeout: 30
+  ServerStopper:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: stopper
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      MemorySize: 128
+      Role: arn:aws:iam::679942607082:role/lambda-execution-role
+      Timeout: 30
+
+  ServerStopperLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ServerStopper}
+
+  StopperScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      ScheduleExpression: rate(30 minutes)
+      FlexibleTimeWindow:
+        Mode: FLEXIBLE
+        MaximumWindowInMinutes: 5
+      Target:
+        Arn: !GetAtt ServerStopper.Arn
+        RoleArn: !GetAtt StopperSchedulerToServerStopperRole.Arn
+
+  StopperSchedulerToServerStopperRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Effect: Allow
+          Principal:
+            Service: !Sub scheduler.${AWS::URLSuffix}
+          Action: sts:AssumeRole
+          Condition:
+            ArnLike:
+              aws:SourceArn: !Sub
+                - arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/*/${AWS::StackName}-${ResourceId}-*
+                - ResourceId: StopperScheduler
+      Policies:
+        - PolicyName: StartExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt ServerStopper.Arn
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
