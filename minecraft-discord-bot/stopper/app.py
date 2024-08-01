@@ -13,6 +13,7 @@ def lambda_handler(event, context):
     server. If players are online, or the server is already inactive, it will
     do nothing.'''
 
+    # All our interactions on the AWS side happen in this block
     try:
 
         # Grab the id of the EC2 instance running the Minecraft server
@@ -23,7 +24,7 @@ def lambda_handler(event, context):
         # Check if the EC2 instance is running
         response = ec2.describe_instances(InstanceIds=[instance_id])
         state = response['Reservations'][0]['Instances'][0]['State']['Name']
-        
+
         # If the EC2 instance is not running, return
         if state != 'running':
             print("Minecraft Server is not currently running")
@@ -34,6 +35,17 @@ def lambda_handler(event, context):
 
         # Get the ip address of the EC2 instance so we can query it
         ip_address = response['Reservations'][0]['Instances'][0]['PublicIpAddress']
+
+    # Catch any error and return a 400
+    except Exception as e:
+        print(f"Encounterd exception: {e}")
+        return {
+            "statusCode": 400,
+            "body": "Error"
+        }
+    
+    # All our interactions with the Minecraft server happen in this block
+    try:
 
         # Ping the server using mcipc to see if anyone is online
         # If no one is online, stop the server
@@ -62,14 +74,15 @@ def lambda_handler(event, context):
 
 
         print(f"There are {num_players} players online, server will not stop")
+        # A successful return
         return {
             "statusCode": 200,
             "body": "Players online"
         }
-    # Catch any error and return a 400
+    
     except Exception as e:
-        print(f"Encounterd exception: {e}")
+        print(f"Could not reach out to MC server. Encountered exception: {e}")
         return {
             "statusCode": 400,
-            "body": "Error"
+            "body": "Minecraft Server Unresponsive"
         }
