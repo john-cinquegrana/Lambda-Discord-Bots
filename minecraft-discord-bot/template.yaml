@@ -55,6 +55,7 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       LogGroupName: !Sub /aws/lambda/${ServerStopperFunction}
+
   StopperSchedulerToServerStopperFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -65,11 +66,6 @@ Resources:
           Principal:
             Service: !Sub scheduler.${AWS::URLSuffix}
           Action: sts:AssumeRole
-          Condition:
-            ArnLike:
-              aws:SourceArn: !Sub
-                - arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/*/${AWS::StackName}-${ResourceId}-*
-                - ResourceId: StopperScheduler
       Policies:
         - PolicyName: StartExecutionPolicy
           PolicyDocument:
